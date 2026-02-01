@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Valentine?</title>
+
+<style>
+    body {
+        margin: 0;
+        height: 100vh;
+        background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+        font-family: Poppins, sans-serif;
+        overflow: hidden;
+    }
+
+    .box {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 40px 50px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+        z-index: 1;
+    }
+
+    h1 {
+        color: #e91e63;
+        margin-bottom: 25px;
+    }
+
+    button {
+        font-size: 20px;
+        padding: 12px 30px;
+        border-radius: 30px;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.15s ease;
+    }
+
+    #yes {
+        background: #4CAF50;
+        color: white;
+    }
+
+    #no {
+        position: fixed;
+        background: #f44336;
+        color: white;
+        z-index: 9999;
+        pointer-events: none; /* 🔒 ABSOLUTE GUARANTEE */
+    }
+
+    #photo {
+        display: none;
+        position: absolute;
+        top: 70%;
+        margin-top: -120px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+    }
+
+    img {
+        max-width: 250px;
+        border-radius: 20px;
+        margin-top: 10px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+    <h1>Meghammaw ❤️<br>Will you be my Valentine?</h1>
+    <button id="yes">Yes 💖</button>
+</div>
+
+<button id="no">No 💔</button>
+
+<div id="photo">
+    <h2>Yayyy ❤️🥹</h2>
+    <img src="meg.jpg">
+</div>
+
+<script>
+const noBtn = document.getElementById("no");
+const yesBtn = document.getElementById("yes");
+const photo = document.getElementById("photo");
+
+let yesScale = 1;
+const maxYesScale = 1.5;
+
+// Safety config
+const SAFE_MARGIN = 60; // bigger than before (anti-flick)
+const BASE_SPEED = 2;
+
+// Initial NO position
+let noX = window.innerWidth * 0.65;
+let noY = window.innerHeight * 0.55;
+
+let mouseX = -1000;
+let mouseY = -1000;
+
+noBtn.style.left = noX + "px";
+noBtn.style.top  = noY + "px";
+
+document.addEventListener("mousemove", e => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+});
+
+function animate() {
+    const rect = noBtn.getBoundingClientRect();
+
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top  + rect.height / 2;
+
+    const dx = cx - mouseX;
+    const dy = cy - mouseY;
+
+    const absDX = Math.abs(dx);
+    const absDY = Math.abs(dy);
+
+    let moveX = 0;
+    let moveY = 0;
+
+    // RECTANGULAR + DEPTH-BASED REPULSION (NO TUNNELING)
+    if (absDX < rect.width / 2 + SAFE_MARGIN &&
+        absDY < rect.height / 2 + SAFE_MARGIN) {
+
+        // penetration depth
+        const penX = (rect.width / 2 + SAFE_MARGIN) - absDX;
+        const penY = (rect.height / 2 + SAFE_MARGIN) - absDY;
+
+        // push stronger when deeper
+        if (penX < penY) {
+            moveX = dx > 0 ? BASE_SPEED + penX * 0.4 : -BASE_SPEED - penX * 0.4;
+        } else {
+            moveY = dy > 0 ? BASE_SPEED + penY * 0.4 : -BASE_SPEED - penY * 0.4;
+        }
+
+        // grow YES (capped)
+        yesScale = Math.min(maxYesScale, yesScale + 0.02);
+        yesBtn.style.transform = `scale(${yesScale})`;
+    }
+
+    noX += moveX;
+    noY += moveY;
+
+    // viewport bounds
+    const maxX = window.innerWidth - rect.width;
+    const maxY = window.innerHeight - rect.height;
+
+    noX = Math.max(0, Math.min(maxX, noX));
+    noY = Math.max(0, Math.min(maxY, noY));
+
+    noBtn.style.left = noX + "px";
+    noBtn.style.top  = noY + "px";
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+yesBtn.addEventListener("click", () => {
+    document.querySelector(".box").innerHTML =
+        "<h1>She said YES ❤️🥹</h1>";
+    noBtn.style.display = "none";
+    photo.style.display = "block";
+});
+</script>
+
+</body>
+</html>
